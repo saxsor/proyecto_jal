@@ -6,6 +6,9 @@ class SpriteKind:
     rocones = SpriteKind.create()
     piso = SpriteKind.create()
     roquitas = SpriteKind.create()
+    nubes = SpriteKind.create()
+    carnita = SpriteKind.create()
+    obstaculo = SpriteKind.create()
 def rocas_espa():
     global rocas_espaciales
     if nivel == 1:
@@ -163,49 +166,62 @@ def Nivel1():
         controller.move_sprite(meteoro, 200, 200)
         meteoro.set_stay_in_screen(True)
         info.start_countdown(2)
+def borrar_sprites_2():
+    for value in sprites.all_of_kind(SpriteKind.player):
+        value.destroy()
+    for value2 in sprites.all_of_kind(SpriteKind.nubes):
+        value2.destroy()
+    for value3 in sprites.all_of_kind(SpriteKind.carnita):
+        value3.destroy()
+    for value4 in sprites.all_of_kind(SpriteKind.roquitas):
+        value4.destroy()
+    for value5 in sprites.all_of_kind(SpriteKind.projectile):
+        value5.destroy()
+    for value6 in sprites.all_of_kind(SpriteKind.piso):
+        value6.destroy()
+
+def on_on_overlap(sprite2, otherSprite2):
+    if nivel == 2:
+        otherSprite2.destroy()
+        info.change_score_by(1)
+        info.change_life_by(1)
+sprites.on_overlap(SpriteKind.player, SpriteKind.carnita, on_on_overlap)
+
 def velociraptor():
     global raptor
-    raptor = sprites.create(img("""
-            . . . . . . . . . . . . . 
-                    . . . f f f f f f . . . . 
-                    . f f f f f f f f f . . . 
-                    . f f f f f f c f f f . . 
-                    f f f f c f f f c f f f . 
-                    f c f f c c f f f c c f f 
-                    f c c f f f f e f f f f f 
-                    f f f f f f f e e f f f . 
-                    f f e e f b f e e f f f . 
-                    f f e 4 e 1 f 4 4 f f . . 
-                    . f f f e 4 4 4 4 f . . . 
-                    . 4 4 4 e e e e f f . . . 
-                    . e 4 4 e 7 7 7 7 f . . . 
-                    . f e e f 6 6 6 6 f f . . 
-                    . f f f f f f f f f f . . 
-                    . . f f . . . f f f . . .
-        """),
-        SpriteKind.player)
+    raptor = sprites.create(assets.image("""
+        raptor
+    """), SpriteKind.player)
     controller.move_sprite(raptor, 100, 100)
+    raptor.ay = 210
     raptor.x = 3
     raptor.set_position(8, 105)
     raptor.set_stay_in_screen(True)
 def borrar_sprites_1():
-    for value in sprites.all_of_kind(SpriteKind.player):
-        value.destroy()
-    for value2 in sprites.all_of_kind(SpriteKind.goal):
-        value2.destroy()
-    for value3 in sprites.all_of_kind(SpriteKind.espaciobajo):
-        value3.destroy()
-    for value4 in sprites.all_of_kind(SpriteKind.background):
-        value4.destroy()
-    for value5 in sprites.all_of_kind(SpriteKind.rocones):
-        value5.destroy()
+    for value7 in sprites.all_of_kind(SpriteKind.player):
+        value7.destroy()
+    for value22 in sprites.all_of_kind(SpriteKind.goal):
+        value22.destroy()
+    for value32 in sprites.all_of_kind(SpriteKind.espaciobajo):
+        value32.destroy()
+    for value42 in sprites.all_of_kind(SpriteKind.background):
+        value42.destroy()
+    for value52 in sprites.all_of_kind(SpriteKind.rocones):
+        value52.destroy()
 
-def on_on_overlap(sprite2, otherSprite2):
+def on_on_overlap2(sprite22, otherSprite22):
+    music.big_crash.play()
     if nivel == 1:
-        otherSprite2.destroy()
+        otherSprite22.destroy()
         scene.camera_shake(2, 500)
         info.change_life_by(-1)
-sprites.on_overlap(SpriteKind.player, SpriteKind.rocones, on_on_overlap)
+sprites.on_overlap(SpriteKind.player, SpriteKind.rocones, on_on_overlap2)
+
+def on_button_pressed():
+    if nivel == 3:
+        pterodactilo.vy = -100
+        pterodactilo.start_effect(effects.rings, 300)
+controller.any_button.on_event(ControllerButtonEvent.PRESSED, on_button_pressed)
 
 def espacio_bajo(izquierdo: number):
     global nuevo_espacio
@@ -219,13 +235,24 @@ def espacio_bajo(izquierdo: number):
 
 def on_a_pressed():
     if nivel == 2:
-        final = 0
-        if raptor.y == 105 and final == 0:
-            raptor.vy = -80
+        if raptor.y <= 120:
+            raptor.vy = -95
 controller.A.on_event(ControllerButtonEvent.PRESSED, on_a_pressed)
 
 def piso3():
-    global piso1, piso2
+    global carne_caida, rocas_caidas, piso1, piso2
+    carne_caida = [assets.image("""
+            carnita1
+        """),
+        assets.image("""
+            carnita2
+        """)]
+    rocas_caidas = [assets.image("""
+            roca0
+        """),
+        assets.image("""
+            roca2
+        """)]
     piso1 = sprites.create(assets.image("""
         piso1
     """), SpriteKind.piso)
@@ -238,60 +265,100 @@ def piso3():
     piso2.vx = -100
     piso1.x = 2
     piso2.x = 2
-
-def on_on_overlap2(sprite22, otherSprite22):
+def carne():
+    global carne_cayendo
     if nivel == 2:
-        otherSprite22.destroy()
+        carne_cayendo = sprites.create(carne_caida[randint(0, 1)], SpriteKind.carnita)
+        carne_cayendo.set_velocity(-160, 0)
+        carne_cayendo.set_position(randint(60, 160), randint(70, 100))
+        carne_cayendo.set_flag(SpriteFlag.AUTO_DESTROY, True)
+        carne_cayendo.start_effect(effects.hearts)
+
+def on_on_overlap3(sprite23, otherSprite23):
+    if nivel == 2:
+        otherSprite23.destroy()
         scene.camera_shake(2, 500)
         info.change_life_by(-1)
-sprites.on_overlap(SpriteKind.player, SpriteKind.projectile, on_on_overlap2)
+sprites.on_overlap(SpriteKind.player, SpriteKind.projectile, on_on_overlap3)
 
 def on_countdown_end():
     global tierra
     if nivel == 1:
+        music.sonar.play()
         effects.star_field.end_screen_effect()
         tierra = sprites.create(assets.image("""
             tierra
         """), SpriteKind.goal)
+        tierra.set_bounce_on_wall(True)
+        tierra.set_velocity(50, 50)
+        tierra.set_position(randint(8, 140), randint(10, 105))
         scene.camera_shake(8, 2000)
 info.on_countdown_end(on_countdown_end)
 
 def obstaculos_desierto():
-    global tipo, obstaculo
+    global tipo, obstaculo2
     tipo = randint(0, 4)
     if tipo == 0:
-        obstaculo = sprites.create_projectile_from_side(assets.image("""
+        obstaculo2 = sprites.create_projectile_from_side(assets.image("""
             cactus1
         """), piso1.vx, 0)
-        obstaculo.y = 94
-        obstaculo.x = 151
+        obstaculo2.y = 101
+        obstaculo2.x = 170
     elif tipo == 1:
-        obstaculo = sprites.create_projectile_from_side(assets.image("""
+        obstaculo2 = sprites.create_projectile_from_side(assets.image("""
             cactus1
         """), piso1.vx, 0)
-        obstaculo.y = 94
-        obstaculo.x = 151
+        obstaculo2.y = 101
+        obstaculo2.x = 170
     elif tipo == 2:
-        obstaculo = sprites.create_projectile_from_side(assets.image("""
+        obstaculo2 = sprites.create_projectile_from_side(assets.image("""
             cactus2
         """), piso1.vx, 0)
-        obstaculo.y = 94
-        obstaculo.x = 151
+        obstaculo2.y = 98
+        obstaculo2.x = 170
 def Nivel2():
-    global rocas_caidas
     game.show_long_text("Huye de la explosión con el raptor", DialogLayout.CENTER)
-    rocas_caidas = [assets.image("""
-            roca0
-        """),
-        assets.image("""
-            roca2
-        """)]
+    music.stop_all_sounds()
     scene.set_background_image(assets.image("""
         desierto
     """))
     effects.blizzard.start_screen_effect()
     effects.blizzard.start_screen_effect()
-    velociraptor()
+    info.set_score(0)
+
+def on_on_overlap4(sprite, otherSprite):
+    if nivel == 3:
+        game.over(False)
+sprites.on_overlap(SpriteKind.player, SpriteKind.projectile, on_on_overlap4)
+
+def Nivel3():
+    global pterodactilo
+    game.show_long_text("Vuela lejos con el pterodactilo", DialogLayout.CENTER)
+    music.stop_all_sounds()
+    scene.set_background_image(assets.image("""
+        bosque
+    """))
+    effects.clouds.start_screen_effect()
+    info.set_score(0)
+    pterodactilo = sprites.create(img("""
+            . . . . . . . . . . b 5 b . . . 
+                    . . . . . . . . . b 5 b . . . . 
+                    . . . . . . b b b b b b . . . . 
+                    . . . . . b b 5 5 5 5 5 b . . . 
+                    . . . . b b 5 d 1 f 5 d 4 c . . 
+                    . . . . b 5 5 1 f f d d 4 4 4 b 
+                    . . . . b 5 5 d f b 4 4 4 4 b . 
+                    . . . b d 5 5 5 5 4 4 4 4 b . . 
+                    . b b d d d 5 5 5 5 5 5 5 b . . 
+                    b d d d b b b 5 5 5 5 5 5 5 b . 
+                    c d d b 5 5 d c 5 5 5 5 5 5 b . 
+                    c b b d 5 d c d 5 5 5 5 5 5 b . 
+                    c b 5 5 b c d d 5 5 5 5 5 5 b . 
+                    b b c c c d d d 5 5 5 5 5 d b . 
+                    . . . . c c d d d 5 5 5 b b . . 
+                    . . . . . . c c c c c b b . . .
+        """),
+        SpriteKind.player)
 def inicio():
     global nivel
     scene.set_background_image(img("""
@@ -445,8 +512,8 @@ def inicio():
     """))
     game.splash("El Fin de", "los dinosaurios")
     Crear_Nivel()
-    info.set_life(3)
     game.show_long_text("lleva el meteorito a la tierra", DialogLayout.CENTER)
+    info.set_life(3)
 def rocas_fuego():
     global rocas_cayendo
     if nivel == 2:
@@ -455,36 +522,114 @@ def rocas_fuego():
         rocas_cayendo.set_position(randint(5, 155), 0)
         rocas_cayendo.set_flag(SpriteFlag.AUTO_DESTROY, True)
         rocas_cayendo.start_effect(effects.disintegrate)
+def seleccion_troncos():
+    global obstaculos_troncos, tronco_arriba, trocno_abajo
+    obstaculos_troncos = randint(0, 3)
+    if obstaculos_troncos == 0:
+        tronco_arriba = assets.image("""
+            tronco arriba
+        """)
+        trocno_abajo = assets.image("""
+            tronco abajo
+        """)
+    elif obstaculos_troncos == 1:
+        tronco_arriba = assets.image("""
+            tronco arriba1
+        """)
+        trocno_abajo = assets.image("""
+            tronco abajo1
+        """)
+    elif obstaculos_troncos == 2:
+        tronco_arriba = assets.image("""
+            tronco arriba3
+        """)
+        trocno_abajo = assets.image("""
+            tronco abajo3
+        """)
+    else:
+        tronco_arriba = assets.image("""
+            tronco arriba4
+        """)
+        trocno_abajo = assets.image("""
+            tronco abajo4
+        """)
+    uso_troncos()
+def uso_troncos():
+    global obstaculos_troncos_imagen, obstaculos_troncos_sprite, projectile
+    obstaculos_troncos_imagen = image.create(2, scene.screen_height())
+    obstaculos_troncos_imagen.fill(1)
+    obstaculos_troncos_sprite = sprites.create(obstaculos_troncos_imagen, SpriteKind.obstaculo)
+    obstaculos_troncos_sprite.set_flag(SpriteFlag.AUTO_DESTROY, True)
+    obstaculos_troncos_sprite.set_flag(SpriteFlag.INVISIBLE, True)
+    obstaculos_troncos_sprite.left = scene.screen_width()
+    obstaculos_troncos_sprite.vx = -45
+    projectile = sprites.create_projectile_from_side(tronco_arriba, -45, 0)
+    projectile.top = 0
+    projectile = sprites.create_projectile_from_side(trocno_abajo, -45, 0)
+    projectile.bottom = scene.screen_height()
 
-def on_on_overlap3(sprite, otherSprite):
+def on_on_overlap5(sprite3, otherSprite3):
     global nivel
-    nivel += 1
-    Crear_Nivel()
-sprites.on_overlap(SpriteKind.player, SpriteKind.goal, on_on_overlap3)
+    if nivel == 1:
+        music.magic_wand.play()
+        nivel += 1
+        Crear_Nivel()
+sprites.on_overlap(SpriteKind.player, SpriteKind.goal, on_on_overlap5)
 
-def on_on_overlap4(sprite23, otherSprite23):
+def on_on_overlap6(sprite4, otherSprite4):
+    if nivel == 3:
+        if otherSprite4.right - sprite4.left < 2:
+            info.change_score_by(1)
+sprites.on_overlap(SpriteKind.player, SpriteKind.obstaculo, on_on_overlap6)
+
+def nubes_fuego():
+    global nubes_fuego2
+    nubes_fuego2 = sprites.create_projectile_from_side(assets.image("""
+        nubes fuego
+    """), piso1.vx + 4, 0)
+    nubes_fuego2.y = randint(10, 40)
+    nubes_fuego2.set_kind(SpriteKind.nubes)
+    nubes_fuego2.x = 165
+
+def on_on_overlap7(sprite24, otherSprite24):
     if nivel == 2:
-        otherSprite23.destroy()
+        otherSprite24.destroy()
         scene.camera_shake(2, 500)
         info.change_life_by(-1)
-sprites.on_overlap(SpriteKind.player, SpriteKind.roquitas, on_on_overlap4)
+sprites.on_overlap(SpriteKind.player, SpriteKind.roquitas, on_on_overlap7)
 
 def Crear_Nivel():
     borrar_sprites_1()
+    borrar_sprites_2()
     if nivel == 1:
         Nivel1()
     elif nivel == 2:
         piso3()
+        velociraptor()
+        rocas_fuego()
+        carne()
         Nivel2()
+    elif nivel == 3:
+        Nivel3()
     else:
         pass
+nubes_fuego2: Sprite = None
+projectile: Sprite = None
+obstaculos_troncos_sprite: Sprite = None
+obstaculos_troncos_imagen: Image = None
+trocno_abajo: Image = None
+tronco_arriba: Image = None
+obstaculos_troncos = 0
 rocas_cayendo: Sprite = None
-rocas_caidas: List[Image] = []
-obstaculo: Sprite = None
+obstaculo2: Sprite = None
 tipo = 0
 tierra: Sprite = None
+carne_cayendo: Sprite = None
 piso2: Sprite = None
 piso1: Sprite = None
+rocas_caidas: List[Image] = []
+carne_caida: List[Image] = []
+pterodactilo: Sprite = None
 raptor: Sprite = None
 nuevo_espacio: Sprite = None
 meteoro: Sprite = None
@@ -494,43 +639,85 @@ rocas_espaciales: Sprite = None
 nivel = 0
 inicio()
 
+def on_on_update():
+    if nivel == 3:
+        if pterodactilo.bottom > 120 or pterodactilo.top < 0:
+            game.over(False)
+game.on_update(on_on_update)
+
+def on_on_update2():
+    global nivel
+    if nivel == 2:
+        if info.score() == 2:
+            effects.blizzard.end_screen_effect()
+            effects.blizzard.end_screen_effect()
+            nivel += 1
+            Crear_Nivel()
+game.on_update(on_on_update2)
+
 def on_update_interval():
     if nivel == 2:
-        piso1.vx += -1
-        piso2.vx += -1
-game.on_update_interval(1000, on_update_interval)
+        carne()
+game.on_update_interval(1300, on_update_interval)
 
 def on_update_interval2():
     if nivel == 2:
-        obstaculos_desierto()
-game.on_update_interval(1000, on_update_interval2)
+        piso1.vx += -1
+        piso2.vx += -1
+game.on_update_interval(2000, on_update_interval2)
 
 def on_update_interval3():
+    if nivel == 2:
+        obstaculos_desierto()
+game.on_update_interval(1000, on_update_interval3)
+
+def on_update_interval4():
+    if nivel == 2:
+        if Math.percent_chance(80):
+            nubes_fuego()
+game.on_update_interval(1000, on_update_interval4)
+
+def on_update_interval5():
     if nivel == 1:
-        for value6 in sprites.all_of_kind(SpriteKind.espaciobajo):
-            value6.x += -1
+        for value62 in sprites.all_of_kind(SpriteKind.espaciobajo):
+            value62.x += -1
         if nuevo_espacio.right < scene.screen_width():
             espacio_bajo(nuevo_espacio.right)
-game.on_update_interval(1, on_update_interval3)
+game.on_update_interval(1, on_update_interval5)
+
+def on_update_interval6():
+    if nivel == 2:
+        rocas_fuego()
+game.on_update_interval(1500, on_update_interval6)
 
 def on_forever():
     if nivel == 2:
-        if piso2.x < -1 * (scene.screen_width() / 2):
-            piso2.x = piso1.x + scene.screen_width()
+        music.play_melody("C5 G B A F A C5 B ", 120)
 forever(on_forever)
 
 def on_forever2():
+    if nivel == 3:
+        music.play_melody("G B A G C5 B A B ", 120)
+forever(on_forever2)
+
+def on_forever3():
+    if nivel == 1:
+        music.play_melody("E B C5 A B G A F ", 120)
+forever(on_forever3)
+
+def on_forever4():
+    if nivel == 2:
+        if piso2.x < -1 * (scene.screen_width() / 2):
+            piso2.x = piso1.x + scene.screen_width()
+forever(on_forever4)
+
+def on_forever5():
     if nivel == 2:
         if piso1.x < -1 * (scene.screen_width() / 2):
             piso1.x = piso2.x + scene.screen_width()
-forever(on_forever2)
+forever(on_forever5)
 
-def on_update_interval4():
+def on_update_interval7():
     if nivel == 1:
         rocas_espa()
-game.on_update_interval(500, on_update_interval4)
-
-def on_update_interval5():
-    if nivel == 2:
-        rocas_fuego()
-game.on_update_interval(500, on_update_interval5)
+game.on_update_interval(500, on_update_interval7)
